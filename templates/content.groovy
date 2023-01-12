@@ -11,8 +11,8 @@ void renderPage(Object pageData, GPathResult inXml, MarkupBuilder outXml, Map re
         'jcr:content'(pageProperties) {
             'root'(commons.component('wcm/foundation/components/responsivegrid')){
                 'responsivegrid'(commons.component('wcm/foundation/components/responsivegrid')){
-                    'title'(commons.component('sample/components/content/title', ['fontSize': 'h1', 'header': inXml.metadata.title.toString()]))
-                    'text'(commons.component('sample/components/content/text', ['textIsRich': true, 'text': inXml.content.toString()]))
+                    'title'(commons.component('sample/components/content/title', ['fontSize': 'h1', 'header': inXml.title.toString()]))
+                    'text'(commons.component('sample/components/content/text', ['textIsRich': true, 'text': inXml.encoded.toString()]))
                 }
             }
         }
