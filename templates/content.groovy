@@ -5,15 +5,17 @@ void renderPage(Object pageData, GPathResult inXml, MarkupBuilder outXml, Map re
 
     GroovyShell shell = new GroovyShell()
     def commons = shell.parse(new File('templates/.commons.groovy').text)
-    def pageProperties = commons.pageProperties(pageData, inXml, '/conf/sample/settings/wcm/templates/content-page','sample/components/structure/page', replacements)
+
+    def pageProperties = commons.pageProperties(pageData, inXml, '/apps/panduit/templates/basedetailpageblog','panduit/components/page/basedetailpageblog', replacements)
+    pageProperties['cq:tags'] = ''
+    pageProperties['blogAuthor'] = ''
+    pageProperties['blogCategories'] = ''
+    pageProperties['blogCreationDateOverride'] = ''
     
     outXml.'jcr:root'(commons.rootProperties()) {
         'jcr:content'(pageProperties) {
-            'root'(commons.component('wcm/foundation/components/responsivegrid')){
-                'responsivegrid'(commons.component('wcm/foundation/components/responsivegrid')){
-                    'title'(commons.component('sample/components/content/title', ['fontSize': 'h1', 'header': inXml.title.toString()]))
-                    'text'(commons.component('sample/components/content/text', ['textIsRich': true, 'text': inXml.encoded.toString()]))
-                }
+            'blogcontent'(commons.component('foundation/components/parsys')){
+                'text'(commons.component('sample/components/content/text', ['textIsRich': true, 'text': inXml.encoded.toString()]))
             }
         }
     }

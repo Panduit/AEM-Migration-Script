@@ -25,7 +25,7 @@ Map pageProperties(Object pageData, GPathResult inXml, String template, String r
         pageTitle = inXml.title.toString()
     pageProperties['jcr:title'] = pageTitle
 
-    pageProperties['cq:contextHubPath'] = '/etc/cloudsettings/default/contexthub'
+    pageProperties['cq:contextHubPath'] = '/conf/global/settings/cloudsettings/default/contexthub'
     pageProperties['cq:contextHubSegmentsPath'] = '/etc/segmentation/contexthub'
     pageProperties['cq:template'] = template
     pageProperties['sling:resourceType'] = resourceType
