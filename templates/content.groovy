@@ -10,8 +10,10 @@ void renderPage(Object pageData, GPathResult inXml, MarkupBuilder outXml, Map re
     pageProperties['cq:tags'] = ''
     pageProperties['blogAuthor'] = ''
     pageProperties['blogCategories'] = ''
-    pageProperties['blogCreationDateOverride'] = ''
-    
+
+    Date blogCreationDateOverride = new Date(inXml.pubDate.toString())
+    pageProperties['blogCreationDateOverride'] = '{Date}' + blogCreationDateOverride.format("yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
+
     outXml.'jcr:root'(commons.rootProperties()) {
         'jcr:content'(pageProperties) {
             'blogcontent'(commons.component('foundation/components/parsys')){
