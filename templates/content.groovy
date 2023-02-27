@@ -16,6 +16,7 @@ void renderPage(Object pageData, GPathResult inXml, MarkupBuilder outXml, Map re
 
     outXml.'jcr:root'(commons.rootProperties()) {
         'jcr:content'(pageProperties) {
+            'par'(commons.component('wcm/foundation/components/parsys'))
             'blogcontent'(commons.component('foundation/components/parsys')){
                 'text'(commons.component('panduit/components/content/general/text', ['textIsRich': true, 'text': inXml.encoded]))
             }
