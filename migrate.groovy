@@ -55,6 +55,8 @@ if(args.length == 2) {
     println "Using batch ${batch}"
 }
 
+idMap = new HashMap<String, String>()
+
 Map loadReplacements() {
     def count = 0
 
@@ -148,7 +150,7 @@ void processPages(File source, File jcrRoot) {
             def outXml = new MarkupBuilder(writer)
 
             println 'Rendering page...'
-            template.renderPage(pageData, inXml, outXml, replacements)
+            template.renderPage(pageData, inXml, outXml, replacements, idMap)
 
             println 'Creating parent folder...'
             def targetFile = new File("${pageData['New Path']}${File.separator}.content.xml",jcrRoot)
@@ -184,9 +186,11 @@ void processFiles(File source, File jcrRoot){
     def count = 0
     def migrated = 0
     println 'Processing files...'
+
     for (fileData in parseCsv(files.getText(ENCODING), separator: SEPARATOR)) {
         def assetRoot = new File(fileData['Target'], jcrRoot)
         def sourceFile = new File(fileData['Source'], source)
+        idMap.put(fileData['Id'], fileData['Target'])
         def mimeType = tika.detect(sourceFile)
         
         println "Processing Source: ${sourceFile} Target: ${assetRoot}"
@@ -235,8 +239,8 @@ println 'Clearing target...'
 target.deleteDir();
 target.mkdir();
 
-processPages(source,jcrRoot)
 processFiles(source,jcrRoot)
+processPages(source,jcrRoot)
 
 println 'Updating filter.xml...'
 def vlt = new File("META-INF${File.separator}vault",target)
