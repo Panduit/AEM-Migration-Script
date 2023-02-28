@@ -56,6 +56,7 @@ if(args.length == 2) {
 }
 
 idMap = new HashMap<String, String>()
+authorsMap = new HashMap<String, String>()
 
 Map loadReplacements() {
     def count = 0
@@ -156,8 +157,10 @@ void processPages(File source, File jcrRoot) {
             def categories = inXml.category.findAll {it.@domain == "category"}
             def tags = inXml.category.findAll {it.@domain == "post_tag"}
 
+            def author = authorsMap.get(inXml.creator)
+
             println 'Rendering page...'
-            template.renderPage(pageData, inXml, outXml, replacements, idMap, categories, tags)
+            template.renderPage(pageData, inXml, outXml, replacements, idMap, categories, tags, author)
 
             println 'Creating parent folder...'
             def targetFile = new File("${pageData['New Path']}${File.separator}.content.xml",jcrRoot)
@@ -233,6 +236,7 @@ void processAuthors(File source, File jcrRoot){
     println 'Processing authors...'
 
     for (fileData in parseCsv(files.getText(ENCODING), separator: SEPARATOR)) {
+        def userLogin = fileData[0]
         def niceName = fileData['user_nicename']
         def name = fileData['display_name']
         def description = fileData['description']
@@ -271,6 +275,8 @@ void processAuthors(File source, File jcrRoot){
         targetFile.newWriter().withWriter { w ->
             w << authorXml
         }
+
+        authorsMap.put(userLogin, niceName)
     }
 }
 

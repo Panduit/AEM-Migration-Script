@@ -1,14 +1,12 @@
 import groovy.xml.slurpersupport.GPathResult
 import groovy.xml.MarkupBuilder
 
-void renderPage(Object pageData, GPathResult inXml, MarkupBuilder outXml, Map replacements, Map idMap, GPathResult categories, GPathResult tags){
+void renderPage(Object pageData, GPathResult inXml, MarkupBuilder outXml, Map replacements, Map idMap, GPathResult categories, GPathResult tags, String author){
 
     GroovyShell shell = new GroovyShell()
     def commons = shell.parse(new File('templates/.commons.groovy').text)
 
     def pageProperties = commons.pageProperties(pageData, inXml, '/apps/panduit/templates/basedetailpageblog','panduit/components/page/basedetailpageblog', replacements)
-
-    // pageProperties['blogAuthor'] = ''
 
     Date blogCreationDateOverride = new Date(inXml.pubDate.toString())
     pageProperties['blogCreationDateOverride'] = '{Date}' + blogCreationDateOverride.format("yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
@@ -38,6 +36,8 @@ void renderPage(Object pageData, GPathResult inXml, MarkupBuilder outXml, Map re
         blogTagsCount++
     }
     pageProperties['cq:tags'] = blogTagsString + ']'
+
+    pageProperties['blogAuthor'] = '/content/dam/panduit/content-fragments/' + author
 
     outXml.'jcr:root'(commons.rootProperties()) {
         'jcr:content'(pageProperties) {
