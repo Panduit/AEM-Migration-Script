@@ -153,8 +153,11 @@ void processPages(File source, File jcrRoot) {
             def writer = new StringWriter()
             def outXml = new MarkupBuilder(writer)
 
+            def categories = inXml.category.findAll {it.@domain == "category"}
+            def tags = inXml.category.findAll {it.@domain == "post_tag"}
+
             println 'Rendering page...'
-            template.renderPage(pageData, inXml, outXml, replacements, idMap)
+            template.renderPage(pageData, inXml, outXml, replacements, idMap, categories, tags)
 
             println 'Creating parent folder...'
             def targetFile = new File("${pageData['New Path']}${File.separator}.content.xml",jcrRoot)
@@ -164,12 +167,10 @@ void processPages(File source, File jcrRoot) {
             targetFile.write(writer.toString(),ENCODING)
             migrated++
 
-            def categories = inXml.category.findAll {it.@domain == "category"}
             for (category in categories) {
                 categoriesMap.put(category.@nicename, category)
             }
 
-            def tags = inXml.category.findAll {it.@domain == "post_tag"}
             for (tag in tags) {
                 tagsMap.put(tag.@nicename, tag)
             }
@@ -232,7 +233,44 @@ void processAuthors(File source, File jcrRoot){
     println 'Processing authors...'
 
     for (fileData in parseCsv(files.getText(ENCODING), separator: SEPARATOR)) {
-        println "Processing author: ${sourceFile} Target: ${assetRoot}"
+        def niceName = fileData['user_nicename']
+        def name = fileData['display_name']
+        def description = fileData['description']
+        def userAvatar = fileData['user_avatar'].replace('https://panduitblog.com/wp-content/uploads','/content/dam/panduit/en/blogs')
+        println "Processing author: ${name}"
+        
+        def authorXml = """<?xml version="1.0" encoding="UTF-8"?>
+<jcr:root xmlns:dam="http://www.day.com/dam/1.0" xmlns:cq="http://www.day.com/jcr/cq/1.0" xmlns:jcr="http://www.jcp.org/jcr/1.0" xmlns:mix="http://www.jcp.org/jcr/mix/1.0" xmlns:nt="http://www.jcp.org/jcr/nt/1.0"
+    jcr:primaryType="dam:Asset">
+    <jcr:content
+        cq:name="${niceName}"
+        cq:parentPath="/content/dam/panduit/content-fragments"
+        jcr:description=""
+        jcr:primaryType="dam:AssetContent"
+        jcr:title="${name}"
+        contentFragment="{Boolean}true">
+        <data
+            cq:model="/conf/global/settings/dam/cfm/models/blog-author"
+            jcr:primaryType="nt:unstructured">
+            <master
+                jcr:primaryType="nt:unstructured"
+                authorBio="${description}"
+                authorBio_x0040_ContentType="text/html"
+                authorName="${name}"
+                authorPhoto="${userAvatar}"
+        </data>
+        <metadata
+            jcr:primaryType="nt:unstructured"/>
+        <related jcr:primaryType="nt:unstructured"/>
+    </jcr:content>
+</jcr:root>
+"""
+
+        def targetFile = new File("\\content\\dam\\panduit\\content-fragments\\${niceName}${File.separator}.content.xml",jcrRoot)
+        targetFile.getParentFile().mkdirs()
+        targetFile.newWriter().withWriter { w ->
+            w << authorXml
+        }
     }
 }
 
@@ -308,6 +346,7 @@ target.deleteDir();
 target.mkdir();
 
 processFiles(source,jcrRoot)
+processAuthors(source,jcrRoot)
 processPages(source,jcrRoot)
 
 println 'Updating filter.xml...'
