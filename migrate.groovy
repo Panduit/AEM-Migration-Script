@@ -196,6 +196,22 @@ void processPages(File source, File jcrRoot) {
             w << categoryXml
         }
     }
+
+    for (Map.Entry<String,String> tag : tagsMap.entrySet()) {
+        def tagXml = """<?xml version="1.0" encoding="UTF-8"?>
+<jcr:root xmlns:sling="http://sling.apache.org/jcr/sling/1.0" xmlns:cq="http://www.day.com/jcr/cq/1.0" xmlns:jcr="http://www.jcp.org/jcr/1.0"
+    jcr:description=""
+    jcr:primaryType="cq:Tag"
+    jcr:title="${tag.getValue()}"
+    sling:resourceType="cq/tagging/components/tag"/>
+"""
+
+        def targetFile = new File("\\content\\_cq_tags\\panduit\\blog-tags\\${tag.getKey()}${File.separator}.content.xml",jcrRoot)
+        targetFile.getParentFile().mkdirs()
+        targetFile.newWriter().withWriter { w ->
+            w << tagXml
+        }
+    }
 }
 
 void processAuthors(File source, File jcrRoot){
