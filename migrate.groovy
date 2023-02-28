@@ -122,6 +122,10 @@ void processPages(File source, File jcrRoot) {
     def pageFile = new File("work${File.separator}config${File.separator}page-mappings.csv")
     def count = 0
     def migrated = 0
+
+    def categoriesMap = new HashMap<String, String>()
+    def tagsMap = new HashMap<String, String>()
+
     println 'Processing pages...'
     for (pageData in parseCsv(pageFile.getText(ENCODING), separator: SEPARATOR)) {
 
@@ -159,6 +163,16 @@ void processPages(File source, File jcrRoot) {
             println "Writing results to $targetFile"
             targetFile.write(writer.toString(),ENCODING)
             migrated++
+
+            def categories = inXml.category.findAll {it.@domain == "category"}
+            for (category in categories) {
+                categoriesMap.put(category.@nicename, category)
+            }
+
+            def tags = inXml.category.findAll {it.@domain == "post_tag"}
+            for (tag in tags) {
+                tagsMap.put(tag.@nicename, tag)
+            }
         } else {
             println 'No action required...'
         }
@@ -166,6 +180,44 @@ void processPages(File source, File jcrRoot) {
         count++
     }
     println "${count} pages processed and ${migrated} migrated in ${TimeCategory.minus(new Date(), start)}"
+
+    for (Map.Entry<String,String> category : categoriesMap.entrySet()) {
+        def categoryXml = """<?xml version="1.0" encoding="UTF-8"?>
+<jcr:root xmlns:sling="http://sling.apache.org/jcr/sling/1.0" xmlns:cq="http://www.day.com/jcr/cq/1.0" xmlns:jcr="http://www.jcp.org/jcr/1.0"
+    jcr:description=""
+    jcr:primaryType="cq:Tag"
+    jcr:title="${category.getValue()}"
+    sling:resourceType="cq/tagging/components/tag"/>
+"""
+
+        def targetFile = new File("\\content\\_cq_tags\\panduit-blog-categories\\${category.getKey()}${File.separator}.content.xml",jcrRoot)
+        targetFile.getParentFile().mkdirs()
+        targetFile.newWriter().withWriter { w ->
+            w << categoryXml
+        }
+    }
+}
+
+void processAuthors(File source, File jcrRoot){
+    def contentXml = '''<?xml version="1.0" encoding="UTF-8"?>
+<jcr:root xmlns:dam="http://www.day.com/dam/1.0" xmlns:cq="http://www.day.com/jcr/cq/1.0" xmlns:jcr="http://www.jcp.org/jcr/1.0" xmlns:mix="http://www.jcp.org/jcr/mix/1.0" xmlns:nt="http://www.jcp.org/jcr/nt/1.0"
+    jcr:primaryType="dam:Asset">
+    <jcr:content
+        jcr:primaryType="dam:AssetContent">
+        <metadata
+            jcr:primaryType="nt:unstructured"/>
+        <related jcr:primaryType="nt:unstructured"/>
+    </jcr:content>
+</jcr:root>
+'''
+    def files = new File("work${File.separator}config${File.separator}authors.csv")
+    def count = 0
+    def migrated = 0
+    println 'Processing authors...'
+
+    for (fileData in parseCsv(files.getText(ENCODING), separator: SEPARATOR)) {
+        println "Processing author: ${sourceFile} Target: ${assetRoot}"
+    }
 }
 
 void processFiles(File source, File jcrRoot){
