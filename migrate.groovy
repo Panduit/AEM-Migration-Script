@@ -33,6 +33,10 @@ import groovy.transform.Field
 import groovy.ant.AntBuilder
 import groovy.xml.XmlSlurper
 
+import java.io.Writer
+import java.io.OutputStreamWriter
+import java.io.FileOutputStream
+import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 
@@ -206,7 +210,8 @@ void processPages(File source, File jcrRoot) {
                     }
                     def originalDir = new File("_jcr_content${File.separator}renditions${File.separator}original.dir${File.separator}.content.xml",assetRoot)
                     originalDir.getParentFile().mkdirs()
-                    originalDir.newWriter().withWriter { w ->
+                    Writer dirwriter = new OutputStreamWriter(new FileOutputStream(originalDir), StandardCharsets.UTF_8)
+                    dirwriter.withWriter { w ->
                         w << jcrwriter.toString()
                     }
 
@@ -214,7 +219,8 @@ void processPages(File source, File jcrRoot) {
                     Files.copy(imageFile.toPath(), new File("_jcr_content${File.separator}renditions${File.separator}original",assetRoot).toPath(),StandardCopyOption.REPLACE_EXISTING,StandardCopyOption.COPY_ATTRIBUTES)
                     
                     println 'Writing .content.xml...'
-                    new File('.content.xml',assetRoot).newWriter().withWriter { w ->
+                    Writer contentwriter = new OutputStreamWriter(new FileOutputStream(new File('.content.xml',assetRoot)), StandardCharsets.UTF_8)
+                    contentwriter.withWriter { w ->
                         w << contentXml
                     }
                 }
@@ -257,7 +263,8 @@ void processPages(File source, File jcrRoot) {
 
         def targetFile = new File("\\content\\_cq_tags\\panduit-blog-categories\\${category.getKey()}${File.separator}.content.xml",jcrRoot)
         targetFile.getParentFile().mkdirs()
-        targetFile.newWriter().withWriter { w ->
+        Writer filewriter = new OutputStreamWriter(new FileOutputStream(targetFile), StandardCharsets.UTF_8)
+        filewriter.withWriter { w ->
             w << categoryXml
         }
     }
@@ -273,7 +280,8 @@ void processPages(File source, File jcrRoot) {
 
         def targetFile = new File("\\content\\_cq_tags\\panduit\\blog-tags\\${tag.getKey()}${File.separator}.content.xml",jcrRoot)
         targetFile.getParentFile().mkdirs()
-        targetFile.newWriter().withWriter { w ->
+        Writer filewriter = new OutputStreamWriter(new FileOutputStream(targetFile), StandardCharsets.UTF_8)
+        filewriter.withWriter { w ->
             w << tagXml
         }
     }
@@ -291,17 +299,6 @@ InputStream fetch(String url){
 }
 
 void processAuthors(File source, File jcrRoot){
-    def contentXml = '''<?xml version="1.0" encoding="UTF-8"?>
-<jcr:root xmlns:dam="http://www.day.com/dam/1.0" xmlns:cq="http://www.day.com/jcr/cq/1.0" xmlns:jcr="http://www.jcp.org/jcr/1.0" xmlns:mix="http://www.jcp.org/jcr/mix/1.0" xmlns:nt="http://www.jcp.org/jcr/nt/1.0"
-    jcr:primaryType="dam:Asset">
-    <jcr:content
-        jcr:primaryType="dam:AssetContent">
-        <metadata
-            jcr:primaryType="nt:unstructured"/>
-        <related jcr:primaryType="nt:unstructured"/>
-    </jcr:content>
-</jcr:root>
-'''
     def files = new File("work${File.separator}config${File.separator}authors.csv")
     def count = 0
     def migrated = 0
@@ -333,7 +330,7 @@ void processAuthors(File source, File jcrRoot){
                 authorBio="${description}"
                 authorBio_x0040_ContentType="text/html"
                 authorName="${name}"
-                authorPhoto="${userAvatar}"
+                authorPhoto="${userAvatar}" />
         </data>
         <metadata
             jcr:primaryType="nt:unstructured"/>
@@ -344,7 +341,8 @@ void processAuthors(File source, File jcrRoot){
 
         def targetFile = new File("\\content\\dam\\panduit\\content-fragments\\${niceName}${File.separator}.content.xml",jcrRoot)
         targetFile.getParentFile().mkdirs()
-        targetFile.newWriter().withWriter { w ->
+        Writer writer = new OutputStreamWriter(new FileOutputStream(targetFile), StandardCharsets.UTF_8)
+        writer.withWriter { w ->
             w << authorXml
         }
 
@@ -388,7 +386,8 @@ void processFiles(File source, File jcrRoot){
         }
         def originalDir = new File("_jcr_content${File.separator}renditions${File.separator}original.dir${File.separator}.content.xml",assetRoot)
         originalDir.getParentFile().mkdirs()
-        originalDir.newWriter().withWriter { w ->
+        Writer dirwriter = new OutputStreamWriter(new FileOutputStream(originalDir), StandardCharsets.UTF_8)
+        dirwriter.withWriter { w ->
             w << writer.toString()
         }
         
@@ -396,7 +395,8 @@ void processFiles(File source, File jcrRoot){
         Files.copy(sourceFile.toPath(), new File("_jcr_content${File.separator}renditions${File.separator}original",assetRoot).toPath(),StandardCopyOption.REPLACE_EXISTING,StandardCopyOption.COPY_ATTRIBUTES)
         
         println 'Writing .content.xml...'
-        new File('.content.xml',assetRoot).newWriter().withWriter { w ->
+        Writer contentwriter = new OutputStreamWriter(new FileOutputStream(new File('.content.xml',assetRoot)), StandardCharsets.UTF_8)
+        contentwriter.withWriter { w ->
             w << contentXml
         }
     }
