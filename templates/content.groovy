@@ -39,6 +39,8 @@ void renderPage(Object pageData, GPathResult inXml, MarkupBuilder outXml, Map re
 
     pageProperties['blogAuthor'] = '/content/dam/panduit/content-fragments/' + author
 
+    blogText = inXml.encoded.toString().replaceAll('https://panduitblog.com.*?([ "\\r\\n])', 'https://www.panduit.com/en/about/blogs.html$1')
+
     outXml.'jcr:root'(commons.rootProperties()) {
         'jcr:content'(pageProperties) {
             'par'(commons.component('wcm/foundation/components/parsys'))
@@ -46,7 +48,7 @@ void renderPage(Object pageData, GPathResult inXml, MarkupBuilder outXml, Map re
                 'image'(commons.component('foundation/components/image', ['fileReference': blogdetailsimagePath]))
             }
             'blogcontent'(commons.component('foundation/components/parsys')){
-                'text'(commons.component('panduit/components/content/general/text', ['textIsRich': true, 'text': inXml.encoded]))
+                'text'(commons.component('panduit/components/content/general/text', ['textIsRich': true, 'text': blogText]))
             }
         }
     }
