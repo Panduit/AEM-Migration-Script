@@ -57,6 +57,7 @@ if(args.length == 2) {
 
 idMap = new HashMap<String, String>()
 authorsMap = new HashMap<String, String>()
+imageList = []
 
 Map loadReplacements() {
     def count = 0
@@ -159,6 +160,66 @@ void processPages(File source, File jcrRoot) {
 
             def author = authorsMap.get(inXml.creator)
 
+            // if src file does not exist in file-mappings.csv, download file and add to jcr
+            def imgSrcs = inXml.encoded.toString().findAll('img src="https://panduitblog.com/wp-content/uploads.*?[ "\\r\\n]')
+            for (imgSrc in imgSrcs) {
+                imageUrl = imgSrc.replaceAll('img src="(https://panduitblog.com/wp-content/uploads.*?)[ "\\r\\n]', '$1')
+                def imagePath = imageUrl.replace('https://panduitblog.com/','')
+                println "path ${imagePath} exists: ${imageList.contains(imagePath)}"
+                if (!imageList.contains(imagePath)) {
+                    def imageFilePath = imagePath.replaceAll("[/]", "\\\\")
+                    def imageFile = new File("work${File.separator}source${File.separator}${imageFilePath}")
+                    
+                    println "file at ${imageFilePath} exists: ${imageFile.exists()}"
+                    if (!imageFile.exists()) {
+                        // download
+                        imageFile.getParentFile().mkdirs()
+                        println "imgSrc: Writing to file: ${imageFile}"
+                        
+                        imageFile.withOutputStream { stream ->
+                            imageFile << fetch(imageUrl)
+                        }
+                    }
+
+                    // add to jcr
+                    def contentXml = '''<?xml version="1.0" encoding="UTF-8"?>
+<jcr:root xmlns:exif="http://ns.adobe.com/exif/1.0/" xmlns:photoshop="http://ns.adobe.com/photoshop/1.0/" xmlns:tiff="http://ns.adobe.com/tiff/1.0/" xmlns:xmp="http://ns.adobe.com/xap/1.0/" xmlns:xmpMM="http://ns.adobe.com/xap/1.0/mm/" xmlns:stEvt="http://ns.adobe.com/xap/1.0/sType/ResourceEvent#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dam="http://www.day.com/dam/1.0" xmlns:cq="http://www.day.com/jcr/cq/1.0" xmlns:jcr="http://www.jcp.org/jcr/1.0" xmlns:mix="http://www.jcp.org/jcr/mix/1.0" xmlns:nt="http://www.jcp.org/jcr/nt/1.0"
+    jcr:primaryType="dam:Asset">
+    <jcr:content
+        jcr:primaryType="dam:AssetContent">
+        <metadata
+            jcr:primaryType="nt:unstructured"/>
+        <related jcr:primaryType="nt:unstructured"/>
+    </jcr:content>
+</jcr:root>
+'''
+                    def assetRoot = new File(imagePath.replace('wp-content/uploads', '/content/dam/panduit/en/blogs'), jcrRoot)
+
+                    def tika = new Tika()
+                    def mimeType = tika.detect(imageFile)
+                    
+                    println 'Creating original.dir XML...'
+                    def jcrwriter = new StringWriter()
+                    def originalDirXml = new MarkupBuilder(jcrwriter)
+                    originalDirXml.'jcr:root'('xmlns:jcr':'http://www.jcp.org/jcr/1.0','xmlns:nt':'http://www.jcp.org/jcr/nt/1.0','jcr:primaryType':'nt:file'){
+                        'jcr:content'('jcr:mimeType': mimeType, 'jcr:primaryType': 'nt:resource')
+                    }
+                    def originalDir = new File("_jcr_content${File.separator}renditions${File.separator}original.dir${File.separator}.content.xml",assetRoot)
+                    originalDir.getParentFile().mkdirs()
+                    originalDir.newWriter().withWriter { w ->
+                        w << jcrwriter.toString()
+                    }
+
+                    println 'Copying original file...'
+                    Files.copy(imageFile.toPath(), new File("_jcr_content${File.separator}renditions${File.separator}original",assetRoot).toPath(),StandardCopyOption.REPLACE_EXISTING,StandardCopyOption.COPY_ATTRIBUTES)
+                    
+                    println 'Writing .content.xml...'
+                    new File('.content.xml',assetRoot).newWriter().withWriter { w ->
+                        w << contentXml
+                    }
+                }
+            }
+
             println 'Rendering page...'
             template.renderPage(pageData, inXml, outXml, replacements, idMap, categories, tags, author)
 
@@ -216,6 +277,17 @@ void processPages(File source, File jcrRoot) {
             w << tagXml
         }
     }
+}
+
+InputStream fetch(String url){
+    def get = new URL(url).openConnection()
+    get.setRequestProperty('User-Agent', 'curl/7.35.0')
+    def rc = get.getResponseCode()
+    if(rc == 200){
+        return get.getInputStream()
+    }
+    println "Retrieved invalid response code ${rc} from ${url}"
+    return null
 }
 
 void processAuthors(File source, File jcrRoot){
@@ -303,6 +375,7 @@ void processFiles(File source, File jcrRoot){
         def assetRoot = new File(fileData['Target'], jcrRoot)
         def sourceFile = new File(fileData['Source'], source)
         idMap.put(fileData['Id'], fileData['Target'])
+        imageList.add(fileData['Source'])
         def mimeType = tika.detect(sourceFile)
         
         println "Processing Source: ${sourceFile} Target: ${assetRoot}"
