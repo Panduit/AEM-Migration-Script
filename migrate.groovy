@@ -252,6 +252,21 @@ void processPages(File source, File jcrRoot) {
     }
     println "${count} pages processed and ${migrated} migrated in ${TimeCategory.minus(new Date(), start)}"
 
+    // Category parent tag
+    def categoryParentXml = '''<?xml version="1.0" encoding="UTF-8"?>
+<jcr:root xmlns:sling="http://sling.apache.org/jcr/sling/1.0" xmlns:cq="http://www.day.com/jcr/cq/1.0" xmlns:jcr="http://www.jcp.org/jcr/1.0"
+    jcr:description=""
+    jcr:primaryType="cq:Tag"
+    jcr:title="Panduit Blog Categories"
+    sling:resourceType="cq/tagging/components/tag" />
+'''
+    def categoryParentFile = new File("\\content\\_cq_tags\\panduit-blog-categories\\.content.xml",jcrRoot)
+    categoryParentFile.getParentFile().mkdirs()
+    Writer categoryParentwriter = new OutputStreamWriter(new FileOutputStream(categoryParentFile), StandardCharsets.UTF_8)
+    categoryParentwriter.withWriter { w ->
+        w << categoryParentXml
+    }
+
     for (Map.Entry<String,String> category : categoriesMap.entrySet()) {
         def categoryXml = """<?xml version="1.0" encoding="UTF-8"?>
 <jcr:root xmlns:sling="http://sling.apache.org/jcr/sling/1.0" xmlns:cq="http://www.day.com/jcr/cq/1.0" xmlns:jcr="http://www.jcp.org/jcr/1.0"
@@ -267,6 +282,21 @@ void processPages(File source, File jcrRoot) {
         filewriter.withWriter { w ->
             w << categoryXml
         }
+    }
+
+    // Tags parent tag
+    def tagsParentXml = '''<?xml version="1.0" encoding="UTF-8"?>
+<jcr:root xmlns:sling="http://sling.apache.org/jcr/sling/1.0" xmlns:cq="http://www.day.com/jcr/cq/1.0" xmlns:jcr="http://www.jcp.org/jcr/1.0"
+    jcr:description=""
+    jcr:primaryType="cq:Tag"
+    jcr:title="Panduit Blog Tags"
+    sling:resourceType="cq/tagging/components/tag" />
+'''
+    def tagsParentFile = new File("\\content\\_cq_tags\\panduit\\blog-tags\\.content.xml",jcrRoot)
+    tagsParentFile.getParentFile().mkdirs()
+    Writer tagsParentwriter = new OutputStreamWriter(new FileOutputStream(tagsParentFile), StandardCharsets.UTF_8)
+    tagsParentwriter.withWriter { w ->
+        w << tagsParentXml
     }
 
     for (Map.Entry<String,String> tag : tagsMap.entrySet()) {
