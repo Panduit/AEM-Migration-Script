@@ -42,7 +42,7 @@ void renderPage(Object pageData, GPathResult inXml, MarkupBuilder outXml, Map re
     pageProperties['hideInNav'] = 'true'
 
     blogText = inXml.encoded.toString()
-        .replaceAll('https://panduitblog.com/wp-content/uploads', 'https://www.panduit.com/content/dam/panduit/en/blogs')
+        .replaceAll('https://panduitblog.com/wp-content/uploads', '/content/dam/panduit/en/blogs')
         .replaceAll('https://panduitblog.com.*?([ "\\r\\n])', 'https://www.panduit.com/en/about/blogs.html$1')
 
     outXml.'jcr:root'(commons.rootProperties()) {

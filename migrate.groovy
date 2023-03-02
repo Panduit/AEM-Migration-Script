@@ -498,11 +498,11 @@ def propertiesXml = new File('properties.xml',workConfig)
 assert propertiesXml.exists()
 new File('properties.xml',vlt) << propertiesXml.getText().replace('${version}',now).replace('${name}',"migrated-content-${configDir.getName()}")
 
-println 'Creating package...'
-def ant = new AntBuilder()
-ant.zip(destfile: "${base.getAbsolutePath()}${File.separator}migrated-content-${configDir.getName()}-${now}.zip", basedir: target)
+// println 'Creating package...'
+// def ant = new AntBuilder()
+// ant.zip(destfile: "${base.getAbsolutePath()}${File.separator}migrated-content-${configDir.getName()}-${now}.zip", basedir: target)
 
-println "Package saved to: work${File.separator}migrated-content-${configDir.getName()}-${now}.zip"
+// println "Package saved to: work${File.separator}migrated-content-${configDir.getName()}-${now}.zip"
 
 println "Content migrated in ${TimeCategory.minus(new Date(), start)}"
 
