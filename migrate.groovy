@@ -165,9 +165,9 @@ void processPages(File source, File jcrRoot) {
             def author = authorsMap.get(inXml.creator)
 
             // if src file does not exist in file-mappings.csv, download file and add to jcr
-            def imgSrcs = inXml.encoded.toString().findAll('img src="https://panduitblog.com/wp-content/uploads.*?[ "\\r\\n]')
+            def imgSrcs = inXml.encoded.toString().findAll('img.+src="https://panduitblog.com/wp-content/uploads.*?[ "\\r\\n]')
             for (imgSrc in imgSrcs) {
-                imageUrl = imgSrc.replaceAll('img src="(https://panduitblog.com/wp-content/uploads.*?)[ "\\r\\n]', '$1')
+                imageUrl = imgSrc.replaceAll('img.+src="(https://panduitblog.com/wp-content/uploads.*?)[ "\\r\\n]', '$1')
                 def imagePath = imageUrl.replace('https://panduitblog.com/','')
                 println "path ${imagePath} exists: ${imageList.contains(imagePath)}"
                 if (!imageList.contains(imagePath)) {
