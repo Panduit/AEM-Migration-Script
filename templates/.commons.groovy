@@ -1,3 +1,6 @@
+@Grab('org.apache.commons:commons-lang3:3.3')
+import org.apache.commons.lang3.StringEscapeUtils
+
 import groovy.xml.slurpersupport.GPathResult
 import groovy.xml.MarkupBuilder
 
@@ -22,7 +25,7 @@ Map pageProperties(Object pageData, GPathResult inXml, String template, String r
     pageProperties['jcr:primaryType']='cq:PageContent'
     def pageTitle = inXml.metadata.title.toString()
     if (pageTitle.isEmpty())
-        pageTitle = inXml.title.toString()
+        pageTitle = StringEscapeUtils.unescapeXml(inXml.title.toString())
     pageProperties['jcr:title'] = pageTitle
 
     pageProperties['cq:contextHubPath'] = '/conf/global/settings/cloudsettings/default/contexthub'
